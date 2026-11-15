@@ -65,7 +65,7 @@ Hardware tested on a rooted LG UP78 43-inch 4K Smart UHD TV (43UP78006LB) runnin
 
 ## Installation / upgrade
 
-For TV installation, open **Homebrew Channel → Settings → Add repository** and enter [the webOS catalog](https://raw.githubusercontent.com/vibribbonee/TheVibeCollection/main/repo.json). You can also download the IPKs from [GitHub Releases](https://github.com/vibribbonee/panelcomfort-webos/releases).
+For TV installation, open **Homebrew Channel → Settings → Add repository** and enter [the webOS catalog](https://raw.githubusercontent.com/vibribbonee/arcguard/main/repo.json). You can also download the IPKs from [GitHub Releases](https://github.com/vibribbonee/panelcomfort-webos/releases).
 
 1. Install `com.webosbrew.panelcomfort_0.3.20_all.ipk` over the existing app using your existing rooted webOS installation path; do not uninstall first unless you intentionally want to remove the app state.
 2. Open PanelComfort and press **Repair / update service** once. The app detects the older root-script version and copies updated scripts into the root service directory. Installing the IPK alone updates the app files, while the root service has a separate installed copy.
