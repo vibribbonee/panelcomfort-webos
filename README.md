@@ -1,8 +1,18 @@
+<img src="custom_components/panelcomfort/brand/icon.png" alt="" width="64" height="64" align="right">
+
 # PanelComfort
 
-Schedule brightness and Eye Comfort on a rooted LG webOS TV. Set levels by time, sun elevation, or room light. Optional HyperHDR control follows the same schedule with separate brightness limits.
+Automatically dim a rooted LG webOS TV in the evening and brighten it during the day.
 
 [![Add to Home Assistant Marketplace](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=vibribbonee&repository=panelcomfort-webos&category=integration)
+
+## Features
+
+- Schedule panel brightness by time, sun elevation, or room light.
+- Set a separate schedule for Eye Comfort and temporarily override brightness in Movie Mode.
+- Adjust HyperHDR lighting alongside the TV and expose controls in Home Assistant.
+
+![PanelComfort’s preview of the daily backlight curve and evening fade](docs/brightness-curve.jpg)
 
 ## Install
 
@@ -14,9 +24,8 @@ Tested on LG UP78 (43UP78006LB), webOS 6.3.2-425.
 
 ## Use it
 
-- Choose **Time**, **Solar**, or an ambient light source for brightness. When an ambient reading goes stale, PanelComfort follows the time schedule.
-- Set Eye Comfort to **Dynamic**, **Time**, **On**, or **Off**. Use **Movie Mode** for a temporary brightness override.
-- To adjust HyperHDR, test the connection under **Ambient LEDs → Connection settings**, select the instances, and save.
+- Use **Ambient LEDs → Connection settings** to test HyperHDR and select your instances.
+- Use **Movie Mode** for a temporary brightness override.
 
 Keep TV controls on a trusted local network. The optional browser dashboard has no login.
 
