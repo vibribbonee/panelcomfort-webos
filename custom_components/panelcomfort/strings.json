@@ -1,0 +1,47 @@
+{
+  "title": "PanelComfort",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Discover PanelComfort",
+        "description": "PanelComfort first tries automatic discovery. If it does not appear, enter the TV local IPv4 address and port 8765 below. After pairing, Home Assistant looks for the same TV again if its address changes; a router DHCP reservation is most reliable. Leave TV address blank and submit to retry a subnet scan.",
+        "data": {
+          "host": "TV local IPv4 address (optional)",
+          "port": "TV HTTP port"
+        }
+      },
+      "select_device": {
+        "title": "Select PanelComfort TV",
+        "description": "More than one PanelComfort TV was found.",
+        "data": {
+          "device": "TV"
+        }
+      },
+      "confirm": {
+        "title": "Add PanelComfort",
+        "description": "Add the PanelComfort TV at {host}? Movie Mode, brightness schedule, Eye Comfort, picture profile protection, calculation settings, time and brightness controls, and live status sensors will be created."
+      }
+    },
+    "error": {
+      "cannot_find_device": "No TV was found during the network scan. Enter the TV IP and port below to pair manually, or verify that Home Assistant is enabled on the TV.",
+      "cannot_connect": "Could not reach the PanelComfort endpoint at that address and port.",
+      "invalid_host": "Enter a the TV’s private local IPv4 address.",
+      "invalid_port": "Enter a port number from 1 to 65535."
+    },
+    "abort": {
+      "already_configured": "This PanelComfort TV is already configured.",
+      "cannot_connect": "Could not contact the discovered PanelComfort TV."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optional ambient light input",
+        "description": "This input is optional. Select an illuminance entity for Home Assistant lux brightness mode or Dynamic Eye Comfort. Choose a sensor with device class Illuminance and unit lx or lux. Changes are forwarded promptly; unchanged readings are refreshed at least once per minute while the TV is reachable.",
+        "data": {
+          "ambient_lux_entity": "Ambient illuminance sensor (optional)"
+        }
+      }
+    }
+  }
+}

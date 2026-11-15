@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.ipk
+*.zip
+*.log
+.DS_Store
+
+secrets.yaml
+.env
+.env.local
+.pytest_cache/
+.venv/
+/dist/

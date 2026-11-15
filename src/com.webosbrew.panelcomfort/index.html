@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Time-based panel brightness and eye-comfort automation for rooted LG webOS TVs.">
+  <title>PanelComfort</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="brand-copy"><div class="eyebrow">ROOTED WEBOS TV</div><h1>PanelComfort</h1><p>Gentler evenings. Full-brightness movie nights.</p></div>
+      <div class="top-status" aria-label="TV and scheduler status">
+        <span id="statusDot" class="status-dot"></span><span id="statusText">Checking TV service…</span>
+        <div class="status-metrics" aria-label="Live status">
+          <div class="status-chip" id="statusChipTime" title="TV local time" aria-label="TV local time"><span>Now</span><strong id="liveTime">--:--</strong><small id="liveDate" class="sr-only">Waiting for TV status</small></div>
+          <div class="status-chip" title="Scheduled panel backlight" aria-label="Scheduled panel backlight"><span>BL</span><strong id="liveBrightness">--%</strong></div>
+          <div class="status-chip" id="statusChipPhase" title="Current schedule phase"><span>Phase</span><strong id="livePhase">Checking…</strong><small id="liveEye" class="sr-only">Eye Comfort: unknown</small></div>
+          <div class="status-chip" id="statusChipNext" title="Next scheduled transition"><span>Next</span><strong id="liveNext">Waiting…</strong><small id="liveNextDetail" class="sr-only">Refreshes with TV status</small></div>
+        </div>
+        <span id="formState" class="form-state" hidden>Unsaved settings</span><button id="refreshBtn" class="button ghost small">Refresh</button>
+      </div>
+    </header>
+
+    <section class="hero card">
+      <div class="hero-copy"><div class="eyebrow">QUICK CONTROL</div><h2 id="modeHeadline">Your picture, on a schedule</h2><p id="modeDescription">PanelComfort gradually dims your TV and enables reduced blue light at night.</p></div>
+      <div class="hero-actions"><button id="overrideBtn" class="button movie-button" disabled><span class="button-icon">◐</span><span><strong id="overrideLabel">Movie override</strong><small id="overrideHint">Full backlight · eye comfort off</small></span></button><button id="applyBtn" class="button primary" disabled>Save &amp; apply</button></div>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite">Connect to the Homebrew root service to configure PanelComfort.</div>
+
+    <section class="card setup-card" id="setupCard" aria-live="polite">
+      <div class="setup-icon">↻</div>
+      <div class="setup-copy"><div class="eyebrow">BOOT SERVICE</div><h2 id="bootTitle">Run automatically</h2><p id="bootDescription">Install the root startup hook once. Settings stay on the TV and apply even when this app is closed.</p></div>
+      <div class="setup-actions"><button id="bootBtn" class="button secondary">Install boot service</button><button id="removeBtn" class="button ghost danger hidden">Remove autostart</button></div>
+    </section>
+
+    <nav class="tab-nav" role="tablist" aria-label="PanelComfort settings">
+      <button class="tab-button active" id="tabSchedule" role="tab" aria-selected="true" aria-controls="panelSchedule" data-tab="schedule">01 &nbsp; Schedule</button>
+      <button class="tab-button" id="tabBrightness" role="tab" aria-selected="false" aria-controls="panelBrightness" data-tab="brightness">02 &nbsp; Panel</button>
+      <button class="tab-button" id="tabEyeComfort" role="tab" aria-selected="false" aria-controls="panelEyeComfort" data-tab="eyecomfort">03 &nbsp; Eye Comfort</button>
+      <button class="tab-button" id="tabHyperHDR" role="tab" aria-selected="false" aria-controls="panelHyperHDR" data-tab="hyperhdr">04 &nbsp; Ambient LEDs</button>
+      <button class="tab-button" id="tabExtras" role="tab" aria-selected="false" aria-controls="panelExtras" data-tab="extras">05 &nbsp; Extras</button>
+      <button class="tab-button" id="tabHomeAssistant" role="tab" aria-selected="false" aria-controls="panelHomeAssistant" data-tab="homeassistant">06 &nbsp; Home Assistant</button>
+      <button class="tab-button" id="tabWebhook" role="tab" aria-selected="false" aria-controls="panelWebhook" data-tab="webhook">07 &nbsp; Webhooks</button>
+    </nav>
+
+    <section class="tab-panel active" id="panelSchedule" role="tabpanel" aria-labelledby="tabSchedule" data-panel="schedule">
+      <section class="card settings-card">
+        <div class="section-title"><div><div class="eyebrow">DAILY AUTOMATION</div><h2>When should your TV dim?</h2></div><label class="switch-label" for="enabled"><span>Service</span><input id="enabled" type="checkbox" checked><span class="switch-ui"></span></label></div>
+        <p class="muted intro">The TV uses its local clock and timezone. Pick a clock time or a solar event independently for evening and morning.</p>
+
+        <div class="field-grid two" id="eveningTriggerWrap">
+          <div class="field"><label for="dimMode">Evening trigger</label><select id="dimMode"><option value="fixed">Fixed time</option><option value="sunset">Local sunset</option></select><small>When the evening fade begins.</small></div>
+          <div class="field" id="dimTimeWrap"><label for="dimStart">Start dimming</label><input id="dimStart" type="time" value="21:00"><small>Local clock time.</small></div>
+          <div class="field hidden" id="sunsetOffsetWrap"><label for="sunsetOffset">Offset from sunset</label><select id="sunsetOffset"><option value="-90">90 minutes before</option><option value="-60">1 hour before</option><option value="-45">45 min before</option><option value="-30">30 min before</option><option value="-20" selected>20 min before</option><option value="-15">15 min before</option><option value="0">At sunset</option><option value="15">15 min after</option><option value="30">30 min after</option><option value="45">45 min after</option><option value="60">1 hour after</option></select><small>Offsets shift when the fade starts.</small></div>
+        </div>
+        <div class="field-grid two" id="morningTriggerWrap">
+          <div class="field"><label for="upMode">Morning trigger</label><select id="upMode"><option value="fixed">Fixed time</option><option value="sunrise">Local sunrise</option></select><small>When daytime brightness returns.</small></div>
+          <div class="field" id="upTimeWrap"><label for="undimStart">Start brightening</label><input id="undimStart" type="time" value="06:30"><small>Local clock time.</small></div>
+          <div class="field hidden" id="sunriseOffsetWrap"><label for="sunriseOffset">Offset from sunrise</label><select id="sunriseOffset"><option value="-60">1 hour before</option><option value="-45">45 min before</option><option value="-30">30 min before</option><option value="-15">15 min before</option><option value="0" selected>At sunrise</option><option value="15">15 min after</option><option value="30">30 min after</option><option value="45">45 min after</option><option value="60">1 hour after</option><option value="90">90 minutes after</option></select><small>Offsets shift when the morning fade starts.</small></div>
+        </div>
+        <p id="locationHint" class="muted small-copy hidden">Solar triggers or solar mode need coordinates. Open <button type="button" id="goToExtrasBtn" class="inline-link">Extras → Solar location</button> to set them.</p>
+
+        <div class="field-grid two fade-controls">
+          <div class="field"><label for="fadeMethod">Fade calculation</label><select id="fadeMethod"><option value="duration" selected>Time-based fade</option><option value="solar">Follow solar elevation</option><option value="ambient">Use an ambient light sensor (Home Assistant / webhook)</option><option value="tv-sensor">Use TV built-in luminance sensor (if available)</option></select><small>Solar mode drives backlight from calculated sun elevation, so no fade duration is needed. Ambient mode maps recent room lux readings between the lux limits below; evening and morning triggers are ignored while readings are fresh. After a scheduler restart, the clock schedule stays active until a new lux sample arrives; it also takes over if samples are missing for two minutes. A Home Assistant sensor is optional; the webhook or browser dashboard can send lux too.</small></div>
+          <div class="field" id="fadeCurveWrap"><label for="fadeCurve">Fade / roll-off curve</label><select id="fadeCurve"><option value="linear">Linear — constant change</option><option value="easein">Ease-in — gentle start, faster finish</option><option value="easeout">Ease-out — fast start, gentle finish</option><option value="smooth" selected>Smoothstep — gentle S-curve</option><option value="smootherstep">Smootherstep — softer start and finish</option><option value="twilight">Cosine / twilight — naturally rounded</option><option value="rolloff-soft">Soft log roll-off — subtle early response</option><option value="rolloff">Log roll-off — stronger early response</option><option value="rolloff-strong">Strong log roll-off — very long tail</option><option value="exponential">Exponential-in — slow start, rapid finish</option><option value="gamma-late">Power 2.2 — very gentle start, stronger late change</option><option value="gamma-early">Power 0.45 — stronger early response, gentle tail</option></select><small>Choose a time-shape, from front-loaded log roll-off to late-start power curves. The two power curves offer a more perceptual-looking ramp: 2.2 delays the change, while 0.45 responds early. Curves apply to timed fades and solar/sensor mappings.</small><div class="curve-preview"><svg id="curvePreview" viewBox="0 0 300 88" role="img" aria-label="Selected fade curve preview"><path class="curve-gridline" d="M18 12V70H286 M18 41H286"/><path id="curvePreviewPath" class="curve-preview-path" d="M18 70 L286 12"/></svg><span id="curvePreviewCaption">Smoothstep — gentle S-curve</span></div></div>
+        </div>
+        <div class="field-grid two" id="durationControls">
+          <div class="field" id="dimDurationWrap"><label for="dimDuration">Evening fade duration</label><input id="dimDuration" type="text" inputmode="numeric" maxlength="6" value="1:00" placeholder="1:00" autocomplete="off" spellcheck="false"><small>Duration as hours:minutes (H:MM), e.g. 1:05 = 1 hour 5 minutes. 0:00 means instant. Also used as a fallback.</small></div>
+          <div class="field" id="undimDurationWrap"><label for="undimDuration">Morning fade duration</label><input id="undimDuration" type="text" inputmode="numeric" maxlength="6" value="0:45" placeholder="0:45" autocomplete="off" spellcheck="false"><small>Duration in H:MM, e.g. 0:45 = 45 minutes. 0:00 means instant.</small></div>
+        </div>
+        <div id="ambientLuxControls" class="field-grid two hidden">
+          <div class="field"><label for="ambientLuxMin">Minimum room illuminance</label><input id="ambientLuxMin" type="number" min="0" max="199999" step="1" value="5"><small>At or below this lux value, the night minimum targets are used.</small></div>
+          <div class="field"><label for="ambientLuxMax">Maximum room illuminance</label><input id="ambientLuxMax" type="number" min="1" max="200000" step="1" value="500"><small>At or above this lux value, the daytime maximum targets are used.</small></div>
+          <div class="field"><label for="ambientBrightnessOffset">Ambient brightness offset</label><input id="ambientBrightnessOffset" type="number" min="-30" max="30" step="1" value="0"><small>Optional −30 to +30 percentage-point adjustment to both the TV and HyperHDR targets.</small></div>
+        </div>
+
+        <div class="panel-footer"><span class="muted small-copy">Save &amp; apply stores the schedule and applies the current result now.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panelEyeComfort" role="tabpanel" aria-labelledby="tabEyeComfort" data-panel="eyecomfort" hidden>
+      <section class="card settings-card">
+        <div class="section-title"><div><div class="eyebrow">REDUCED BLUE LIGHT</div><h2>Eye Comfort schedule</h2></div><label class="switch-label" for="eyeEnabled"><span>Enabled</span><input id="eyeEnabled" type="checkbox" checked><span class="switch-ui"></span></label></div>
+        <p class="muted intro">Choose whether Eye Comfort follows room light, its own clock schedule, or a fixed override. This is independent of the brightness calculation.</p>
+        <div class="field"><label for="eyeComfortMode">Eye Comfort control</label><select id="eyeComfortMode"><option value="dynamic">Dynamic</option><option value="time">Time</option><option value="on">On</option><option value="off">Off</option></select><small>Dynamic follows fresh lux and falls back to the timing below when readings are missing or stale. Time follows the timing below and ignores lux. Movie Mode pauses Dynamic and Time; On and Off are explicit overrides.</small></div>
+        <div class="field"><label for="eyeLuxThreshold">Eye Comfort lux threshold</label><input id="eyeLuxThreshold" type="number" min="0" max="200000" step="1" value="50"><small>In Dynamic mode, turn Eye Comfort on at or below this room illuminance. HA lux, webhook, and browser readings are supported; stale or missing readings use the schedule.</small></div>
+        <div class="field"><label for="luxStability">Lux Stability (lx)</label><input id="luxStability" type="number" min="0" max="1000" step="1" value="10"><small>Ignore sensor changes up to this amount from the last accepted reading. Dynamic Eye Comfort stays on until lux rises above its threshold plus this value. Set to 0 to disable.</small></div>
+        <div class="eye-card">
+          <div class="field"><label for="eyeTiming">Eye comfort timing</label><select id="eyeTiming"><option value="linked" selected>Follow evening / morning triggers</option><option value="custom">Use custom clock times</option></select><small>Recommended: use the same sunset/sunrise or clock triggers as the brightness schedule, with independent offsets.</small></div>
+          <div id="eyeLinkedFields" class="field-grid two eye-times">
+            <div class="field"><label for="eyeStartOffset">Eye Comfort start offset</label><input id="eyeStartOffset" type="text" inputmode="numeric" maxlength="7" value="0:15" placeholder="0:15" autocomplete="off" spellcheck="false"><small>Relative to evening trigger. No sign / positive = after; a leading minus = before. Example: -1:05 means 1 hour 5 minutes early.</small></div>
+            <div class="field"><label for="eyeEndOffset">Eye Comfort end offset</label><input id="eyeEndOffset" type="text" inputmode="numeric" maxlength="7" value="0:00" placeholder="0:00" autocomplete="off" spellcheck="false"><small>0:00 means at the morning trigger; -0:15 means 15 minutes before it.</small></div>
+          </div>
+          <div id="eyeCustomFields" class="field-grid two eye-times hidden">
+            <div class="field"><label for="eyeStart">Eye comfort starts</label><input id="eyeStart" type="time" value="21:30"></div>
+            <div class="field"><label for="eyeEnd">Eye comfort ends</label><input id="eyeEnd" type="time" value="06:30"></div>
+          </div>
+          <p class="muted small-copy eye-note">Movie Mode pauses Dynamic Eye Comfort. Explicit On and Off selections remain in effect.</p>
+        </div>
+        <div class="panel-footer"><span class="muted small-copy">Eye Comfort timing can follow the evening/morning triggers or use custom clock times.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panelBrightness" role="tabpanel" aria-labelledby="tabBrightness" data-panel="brightness" hidden>
+      <section class="card settings-card">
+        <div class="section-title"><div><div class="eyebrow">PANEL LIGHT</div><h2>Brightness limits</h2></div><span class="pill">0–100</span></div>
+        <p class="muted intro">Changes the backlight / panel-light setting, not black level or contrast. Some picture modes can keep their own settings.</p>
+        <div class="range-field"><div class="range-heading"><label for="minBrightness">Night minimum</label><output id="minOut">18</output></div><input id="minBrightness" type="range" min="0" max="70" value="18"><div class="range-scale"><span>Dimmer</span><span>Brighter</span></div></div>
+        <div class="range-field"><div class="range-heading"><label for="maxBrightness">Day maximum</label><output id="maxOut">80</output></div><input id="maxBrightness" type="range" min="1" max="100" value="80"><div class="range-scale"><span>Lower</span><span>100 = maximum</span></div></div>
+        <div class="movie-target-block">
+          <div class="section-title"><div><div class="eyebrow">MOVIE MODE</div><h3>TV and LED targets</h3></div><label class="switch-label" for="movieBrightnessEnabled"><span>Custom target</span><input id="movieBrightnessEnabled" type="checkbox"><span class="switch-ui"></span></label></div>
+          <p class="muted small-copy">When off, Movie Mode uses each output's daytime target. When on, this value is the TV backlight percentage; HyperHDR maps the same position between its own night/day limits. Scheduled Eye Comfort is paused.</p>
+          <div class="range-field"><div class="range-heading"><label for="movieBrightness">Movie Mode TV brightness</label><output id="movieBrightnessOut">80%</output></div><input id="movieBrightness" type="range" min="0" max="100" value="80"><div class="range-scale"><span>0%</span><span>100%</span></div></div>
+        </div>
+        <div class="preview-block"><div class="preview-copy"><span class="eyebrow">SCHEDULE PREVIEW</span><strong id="previewTitle">18% at night · 80% daytime</strong><small id="previewText">Dimming begins at 21:00 and fades over 60 minutes.</small></div><div class="preview-meter"><span id="previewMeterFill"></span></div></div>
+        <div class="timeline-card"><div class="timeline-heading"><div><div class="eyebrow" id="timelineKicker">DAILY LIGHT CURVE</div><strong id="timelineTitle">Illustrative brightness timeline</strong></div><span id="timelineMode" class="pill neutral">Time-based</span></div><svg id="brightnessTimeline" viewBox="0 0 640 148" role="img" aria-label="Preview of scheduled brightness over a day" preserveAspectRatio="none"><path class="timeline-gridline" d="M32 28H608 M32 68H608 M32 108H608"/><path id="timelineArea" class="timeline-area" d="M32 28 L200 28 L250 108 L470 108 L520 28 L608 28 Z"/><path id="timelinePath" class="timeline-path" d="M32 28 L200 28 L250 108 L470 108 L520 28 L608 28"/><line id="timelineNow" class="timeline-now" x1="32" y1="18" x2="32" y2="116"/><text x="32" y="137" id="timelineLabel0">00:00</text><text x="176" y="137" id="timelineLabel1">06:00</text><text x="320" y="137" id="timelineLabel2">12:00</text><text x="464" y="137" id="timelineLabel3">18:00</text><text x="608" y="137" id="timelineLabel4" text-anchor="end">24:00</text><text x="36" y="17" id="timelineTopLabel">Day</text><text x="604" y="17" text-anchor="end" id="timelineBottomLabel">Night fade</text></svg><p id="timelineCaption" class="muted small-copy">Preview updates as you edit settings; the TV recalculates its target every minute.</p></div>
+        <div class="profile-protection-block">
+          <div class="section-title"><div><div class="eyebrow">INPUT / PICTURE-PROFILE PROTECTION</div><h3>Reapply after picture changes</h3></div><label class="switch-label" for="profileProtectionEnabled"><span>Enabled</span><input id="profileProtectionEnabled" type="checkbox" checked><span class="switch-ui"></span></label></div>
+          <p class="muted small-copy">Watches foreground-app / current-input context and the active picture-mode dimension where webOS reports them, then reapplies scheduled backlight and Eye Comfort after a change. This firmware does not expose reliable HDR metadata through a documented API, so HDR-only changes are best-effort; read-back drift and the regular schedule provide fallbacks.</p>
+          <div class="profile-status-row"><span id="profileProtectionBadge" class="pill neutral">Checking…</span><span id="profileProtectionStatus" class="muted small-copy">Checking watcher status…</span></div>
+          <div id="profileContext" class="profile-context muted small-copy">No active picture profile reported yet.</div>
+        </div>
+        <div class="panel-footer"><span class="muted small-copy">Movie override uses the configured daytime maximum.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panelHyperHDR" role="tabpanel" aria-labelledby="tabHyperHDR" data-panel="hyperhdr" hidden>
+      <section class="card settings-card hdr-card">
+        <div class="section-title"><div><div class="eyebrow">AMBIENT LIGHTS</div><h2>Hyperion / HyperHDR brightness</h2></div><label class="switch-label" for="hyperhdrEnabled"><span>Control LEDs</span><input id="hyperhdrEnabled" type="checkbox"><span class="switch-ui"></span></label></div>
+        <p class="muted intro">Fade HyperHDR output with the TV schedule. Uses HyperHDR v22 output scaling and can target all running instances or selected instance IDs. Each instance is selected before its brightness is changed, so separate side-light instances can follow the schedule too. If HyperHDR or a light is unavailable, TV dimming keeps running.</p>
+        <div class="discovery-row hdr-primary-action"><button id="hyperhdrTestBtn" class="button secondary">Test connection</button><span id="hyperhdrDiscoveryStatus" class="muted small-copy">Save &amp; apply, then test the connection.</span></div>
+        <div class="subsection-title hdr-limits-title"><div class="eyebrow">LED BRIGHTNESS LIMITS</div><p class="muted small-copy">The LED levels fade on the same schedule as the TV panel, but have separate limits.</p></div>
+        <div class="hdr-brightness-grid">
+          <div class="range-field"><div class="range-heading"><label for="hyperhdrMinBrightness">Night minimum</label><output id="hyperhdrMinOut">12%</output></div><input id="hyperhdrMinBrightness" type="range" min="0" max="90" value="12"><div class="range-scale"><span>Off</span><span>Brighter</span></div></div>
+          <div class="range-field"><div class="range-heading"><label for="hyperhdrMaxBrightness">Day / movie maximum</label><output id="hyperhdrMaxOut">60%</output></div><input id="hyperhdrMaxBrightness" type="range" min="1" max="100" value="60"><div class="range-scale"><span>Lower</span><span>100 = normal output scale</span></div></div>
+        </div>
+        <div class="preview-block hdr-preview"><div class="preview-copy"><span class="eyebrow">AMBIENT LIGHT PREVIEW</span><strong id="hyperhdrPreviewTitle">12% at night · 60% day · movie TV 80% / LEDs 60%</strong><small>The Movie Mode slider sets the TV target. HyperHDR follows the same position between the TV's night/day limits, mapped to the LEDs' own night/day limits. Select which HyperHDR instances receive the adjustment in Connection settings.</small></div><div class="preview-meter"><span id="hyperhdrPreviewMeterFill"></span></div></div>
+        <details class="advanced-settings"><summary>Connection settings (advanced)</summary><div class="advanced-body">
+          <div class="field-grid two"><div class="field"><label for="hyperhdrHost">HyperHDR host</label><input id="hyperhdrHost" type="text" value="127.0.0.1" placeholder="127.0.0.1" autocomplete="off" spellcheck="false"><small>Use 127.0.0.1 when HyperHDR runs on this TV.</small></div><div class="field"><label for="hyperhdrPort">HTTP port</label><input id="hyperhdrPort" type="text" value="auto" placeholder="auto or 8090" autocomplete="off" spellcheck="false"><small><strong>auto</strong> tries the last working port, 8090 and a bounded local-port scan.</small></div></div>
+          <div class="field-grid two"><div class="field"><label for="hyperhdrToken">API token (optional)</label><input id="hyperhdrToken" type="password" value="" autocomplete="new-password" spellcheck="false"><small>Leave blank if local JSON-RPC does not require authentication.</small></div><div class="field instance-picker-field"><span class="field-label">Instances to control</span><input id="hyperhdrInstanceIds" type="hidden" value="all"><small>Select all running instances or choose them individually. Run Test connection to refresh the detected list.</small><div id="hyperhdrInstanceOptions" class="instance-options" aria-live="polite"><span class="muted small-copy">Run Test connection to discover HyperHDR instances.</span></div><details class="manual-instance-picker"><summary>Enter instance IDs manually</summary><label for="hyperhdrInstanceIdsManual">Comma-separated instance IDs</label><input id="hyperhdrInstanceIdsManual" type="text" value="all" placeholder="all or 0,3" autocomplete="off" spellcheck="false"><small>Use this only if HyperHDR does not report its running instances.</small></details></div></div>
+        </div></details>
+        <div class="panel-footer"><span class="muted small-copy">Optional integration. Disable it to leave HyperHDR brightness untouched.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panelExtras" role="tabpanel" aria-labelledby="tabExtras" data-panel="extras" hidden>
+      <section class="card settings-card">
+        <div class="section-title"><div><div class="eyebrow">OPTIONAL INPUTS</div><h2>Location &amp; sensors</h2></div><span class="pill neutral">Model-dependent</span></div>
+        <div id="solarLocationCard" class="location-card">
+          <div class="section-title"><div><div class="eyebrow">SOLAR LOCATION</div><h3>Where is the TV?</h3></div><button id="detectLocationBtn" class="button secondary">Detect by internet</button></div>
+          <p class="muted small-copy">Looks up an approximate location from your public IP using ipapi.co. It is not GPS and can be inaccurate with a VPN or mobile internet. You can edit the coordinates manually.</p>
+          <div class="field-grid two location-fields">
+            <div class="field"><label for="latitude">Latitude</label><input id="latitude" type="number" min="-89" max="89" step="0.0001" placeholder="e.g. 52.70"></div>
+            <div class="field"><label for="longitude">Longitude</label><input id="longitude" type="number" min="-180" max="180" step="0.0001" placeholder="e.g. 5.20"></div>
+          </div>
+          <small id="locationStatus" class="location-status">Coordinates drive sunrise/sunset times and the solar-elevation fade. IP lookup is approximate and happens only when you press the button.</small>
+        </div>
+        <div class="sensor-row"><div class="sensor-icon">▣</div><div class="sensor-copy"><strong>Browser dashboard</strong><p>The dashboard lets phones and computers on your home network view status, change the schedule, toggle Movie Mode and send sensor readings. It can write TV settings, so leave it off unless you use it.</p><div class="toggle-row dashboard-toggle"><span class="toggle-caption">Enable browser dashboard API on the local network</span><label class="switch-label" for="webUiEnabled"><input id="webUiEnabled" type="checkbox"><span class="switch-ui"></span></label></div><div class="shortcut-controls"><a id="openWebInterface" class="button secondary" href="#" aria-disabled="true" target="_blank" rel="noopener">Open web dashboard</a><span id="webInterfaceAddress" class="muted small-copy">Dashboard disabled until enabled and saved.</span></div><small class="muted small-copy">No login or token is required. Only enable on a trusted home LAN; never forward this port to the internet. Home Assistant and webhook controls can remain enabled independently.</small></div></div>
+        <div class="sensor-row built-in-sensor-row"><div class="sensor-icon">☼</div><div class="sensor-copy"><strong>TV built-in ambient / luminance sensor</strong><p>Some modern LG models expose an ambient-light / luminance reading through webOS. Availability varies by panel and firmware. The Schedule → Fade calculation menu retains “TV built-in luminance sensor”; if unsupported or stale, PanelComfort falls back to the timed schedule.</p><div class="shortcut-controls"><button id="testTvSensorBtn" class="button secondary">Check TV sensor</button><span id="tvSensorStatus" class="muted small-copy">Not checked yet</span></div></div><span id="tvSensorBadge" class="unavailable">Not checked</span></div>
+<div class="panel-footer"><span class="muted small-copy">Ambient sensor input can come from the TV (if supported), Home Assistant, or a secret webhook.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panelHomeAssistant" role="tabpanel" aria-labelledby="tabHomeAssistant" data-panel="homeassistant" hidden>
+      <section class="card settings-card">
+        <div class="section-title"><div><div class="eyebrow">NATIVE INTEGRATION</div><h2>Home Assistant</h2></div><span id="haApiBadge" class="pill neutral">Disabled</span></div>
+        <div class="sensor-row"><div class="sensor-icon">⌂</div><div class="sensor-copy"><strong>Movie Mode switch and sensor controls</strong><p>Enable this endpoint and Save &amp; apply. In Home Assistant, copy <code>ha-integration/custom_components/panelcomfort</code> into <code>/config/custom_components/panelcomfort</code>, restart Home Assistant, then add the PanelComfort integration. If discovery does not find the TV, enter its current local IP and port 8765. A lux sensor is optional: choose one in Configure → Options only if using Ambient mode; otherwise leave it blank. Ambient Lux Minimum/Maximum and Ambient Brightness Offset are available as Home Assistant number controls.</p><div class="toggle-row ha-toggle"><span class="toggle-caption">Allow Home Assistant from private IPv4 networks</span><label class="switch-label" for="haApiEnabled"><input id="haApiEnabled" type="checkbox"><span class="switch-ui"></span></label></div></div></div>
+        <div class="notice security-note show">LAN-only, without a token: devices on private IPv4 networks may call this control endpoint while enabled; this is not authentication and is not restricted to one /24 subnet. Keep it on a trusted home LAN and do not forward the port to the internet. The separate Webhooks tab uses secret URLs instead.</div>
+        <div class="ha-status-line"><span id="haApiStatus" class="muted small-copy">Requires the boot service.</span><span id="haApiAddress" class="muted small-copy">Port 8765</span></div>
+        <div class="shortcut-controls"><button id="testHaEndpointBtn" class="button secondary">Test endpoint</button><span id="haEndpointTestStatus" class="muted small-copy">The web dashboard is independent of Home Assistant.</span></div>
+        <details class="advanced-settings"><summary>Network details</summary><div class="advanced-body"><div class="field-grid two"><div class="field"><label for="haApiPort">Discovery / API port</label><input id="haApiPort" type="number" min="1024" max="65535" step="1" value="8765"><small>Keep 8765 unless you have a port conflict.</small></div><div class="field"><label for="haTvIp">Current TV address</label><input id="haTvIp" type="text" readonly value="Detecting…"></div></div><div class="field"><label for="haHealthUrl">TV health-check URL</label><input id="haHealthUrl" type="text" readonly value=""><small>Open this from another device on your local network. A JSON response with <code>"ok":true</code> confirms that the listener and endpoint are reachable, even when the Home Assistant API is disabled. This URL appears after status refresh and service update.</small></div><div class="field"><label for="haDeviceId">Stable device ID</label><input id="haDeviceId" type="text" readonly value="Generated when boot service is installed" spellcheck="false" autocomplete="off"></div></div></details>
+        <div class="panel-footer"><span class="muted small-copy">Requires the boot service. Home Assistant and Webhooks are independent.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panelWebhook" role="tabpanel" aria-labelledby="tabWebhook" data-panel="webhook" hidden>
+      <section class="card settings-card">
+        <div class="section-title"><div><div class="eyebrow">OPTIONAL HTTP CONTROL</div><h2>Webhook URLs</h2></div><span id="webhookBadge" class="pill neutral">Disabled</span></div>
+        <p class="muted intro">Completely separate from the Home Assistant integration. Use short 8-character secret-link IDs with REST commands, scripts or trusted LAN automations. The ambient-light URL accepts a new lux reading, so external sensors can drive Ambient mode without Home Assistant. Keep the links local and private.</p>
+        <div class="toggle-row"><span class="toggle-caption">Enable secret-link webhooks</span><label class="switch-label" for="webhookEnabled"><input id="webhookEnabled" type="checkbox"><span class="switch-ui"></span></label></div>
+        <div class="shortcut-controls webhook-actions"><button id="webhookRotateBtn" class="button ghost">Rotate webhook links</button><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+        <details id="webhookDetails" class="advanced-settings"><summary>Show webhook URLs</summary><div class="advanced-body"><div class="field"><label for="webhookHost">TV address in URLs</label><input id="webhookHost" type="text" value="" placeholder="e.g. 192.0.2.186" autocomplete="off" spellcheck="false"><small>Auto-detected from the TV network interface. If detection fails, enter the TV local IP address here; press Save &amp; apply to keep it.</small></div><p id="webhookUrlHelp" class="muted small-copy">Enable and save webhooks to activate these links. Keep them private: possession of a URL grants control from an allowed private IPv4 network. The short URL secret has 32 bits of entropy; keep it on a trusted home LAN.</p><div class="field"><label for="webhookOnUrl">Movie Mode ON</label><input id="webhookOnUrl" type="text" readonly value=""><button type="button" class="button ghost small copy-webhook" data-copy="webhookOnUrl">Copy URL</button><small>Explicitly enables Movie Mode.</small></div><div class="field"><label for="webhookOffUrl">Movie Mode OFF</label><input id="webhookOffUrl" type="text" readonly value=""><button type="button" class="button ghost small copy-webhook" data-copy="webhookOffUrl">Copy URL</button><small>Resumes the schedule.</small></div><div class="field"><label for="webhookToggleUrl">Toggle Movie Mode</label><input id="webhookToggleUrl" type="text" readonly value=""><button type="button" class="button ghost small copy-webhook" data-copy="webhookToggleUrl">Copy URL</button></div><div class="field"><label for="webhookStatusUrl">Status query</label><input id="webhookStatusUrl" type="text" readonly value=""><button type="button" class="button ghost small copy-webhook" data-copy="webhookStatusUrl">Copy URL</button><small>Returns current override, phase, panel backlight, lux and HyperHDR state.</small></div><div class="field"><label for="webhookAmbientUrl">Send ambient light (lux)</label><input id="webhookAmbientUrl" type="text" readonly value=""><button type="button" class="button ghost small copy-webhook" data-copy="webhookAmbientUrl">Copy URL</button><small>Replace the final number after <code>ambient_lux=</code> with the new illuminance reading (integer 0–200000). Useful with a sensor or automation that can call HTTP URLs; no Home Assistant integration required. To use these readings for dimming, select Ambient sensor mode.</small></div><span class="pill neutral" id="webhookUrlStatus">Disabled</span></div></details>
+        <div class="panel-footer"><span class="muted small-copy">Use the Home Assistant integration for a native, state-reporting switch.</span><button class="button primary tab-save" data-save>Save &amp; apply</button></div>
+      </section>
+    </section>
+
+    <footer><span>PanelComfort 0.3.20 · Movie Mode screen and HyperHDR target</span><span id="lastAction">Settings stay on this TV.</span></footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

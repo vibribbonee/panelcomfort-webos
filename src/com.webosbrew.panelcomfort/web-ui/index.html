@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex,nofollow">
+  <title>PanelComfort · TV dashboard</title>
+  <link rel="stylesheet" href="/panelcomfort.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="mark">PC</span><div><p class="kicker">ROOTED webOS · LOCAL DASHBOARD</p><h1>PanelComfort</h1><p class="sub">Scheduled backlight, Eye Comfort and ambient response</p></div></div>
+      <div class="connection"><span id="connectionDot" class="dot"></span><span id="connectionText">Connecting to TV…</span><button id="refresh" class="button ghost small">Refresh</button></div>
+    </header>
+    <div id="notice" class="notice" role="status" aria-live="polite">Loading TV status…</div>
+
+    <section class="hero">
+      <div><p class="kicker">QUICK CONTROL</p><h2 id="heroTitle">Your TV, at a glance</h2><p id="heroDetail">PanelComfort updates on the TV even while this page is closed.</p></div>
+      <div class="hero-actions"><button id="movieToggle" class="button movie">Toggle Movie Mode</button><button id="movieOn" class="button ghost">Movie Mode on</button><button id="movieOff" class="button ghost">Resume schedule</button></div>
+    </section>
+
+    <section class="stats" aria-label="Current status">
+      <article class="stat"><span>TV local time</span><strong id="time">--:--</strong><small id="date">Waiting for status</small></article>
+      <article class="stat"><span>Screen backlight target</span><strong id="backlight">--%</strong><small>Calculated setting, not an optical measurement</small></article>
+      <article class="stat"><span>Schedule phase</span><strong id="phase">—</strong><small id="eyeState">Eye Comfort: —</small></article>
+      <article class="stat"><span>Ambient reading</span><strong id="lux">— lx</strong><small id="luxAge">No recent sensor data</small></article>
+      <article class="stat"><span>Last screen command</span><strong id="screenApply">Unknown</strong><small id="screenApplyDetail">No TV response recorded</small></article>
+    </section>
+
+    <section class="grid">
+      <article class="card span2">
+        <div class="section-heading"><div><p class="kicker">SCHEDULE</p><h2>Brightness &amp; fade</h2></div><label class="switch"><input id="enabled" type="checkbox"><span></span><b>Scheduler</b></label></div>
+        <div class="form-grid">
+          <label>Fade calculation<select id="method"><option value="duration">Time-based fade</option><option value="solar">Follow solar elevation</option><option value="ambient">Ambient light sensor / webhook</option><option value="tv-sensor">TV built-in luminance sensor</option></select></label>
+          <label>Fade curve<select id="curve"><option value="linear">Linear</option><option value="easein">Ease-in</option><option value="easeout">Ease-out</option><option value="smooth">Smoothstep S-curve</option><option value="smootherstep">Smootherstep</option><option value="twilight">Cosine / twilight</option><option value="rolloff-soft">Soft log roll-off</option><option value="rolloff">Log roll-off</option><option value="rolloff-strong">Strong log roll-off</option><option value="exponential">Exponential-in</option><option value="gamma-late">Power 2.2 / late change</option><option value="gamma-early">Power 0.45 / early response</option></select></label>
+          <label>Evening trigger<select id="dimMode"><option value="fixed">Fixed time</option><option value="sunset">Local sunset</option></select></label>
+          <label>Start dimming<input id="dimStart" type="time" value="21:00"></label>
+          <label>Evening fade duration (H:MM)<input id="dimDuration" type="text" inputmode="numeric" value="1:00" placeholder="1:05"></label>
+          <label>Morning trigger<select id="upMode"><option value="fixed">Fixed time</option><option value="sunrise">Local sunrise</option></select></label>
+          <label>Start brightening<input id="undimStart" type="time" value="06:30"></label>
+          <label>Morning fade duration (H:MM)<input id="undimDuration" type="text" inputmode="numeric" value="0:45" placeholder="0:45"></label>
+          <label>Night minimum (%)<input id="minBrightness" type="number" min="0" max="70" step="1" value="18"></label>
+          <label>Day maximum (%)<input id="maxBrightness" type="number" min="1" max="100" step="1" value="80"></label>
+        </div>
+        <label class="switch"><input id="movieBrightnessEnabled" type="checkbox"><span></span><b>Use a custom Movie Mode brightness</b></label>
+        <label class="movie-brightness-field">Movie Mode TV brightness (%)<input id="movieBrightness" type="number" min="0" max="100" step="1" value="80"></label>
+        <p class="hint">When custom Movie Mode brightness is off, Movie Mode uses each output's day maximum. When enabled, this sets the TV target and maps the same position between the TV's night/day limits onto HyperHDR's own night/day limits.</p>
+        <label class="switch"><input id="profileProtection" type="checkbox"><span></span><b>Reapply after picture profile changes</b></label>
+        <p class="hint">Durations use hours:minutes. For example, <code>1:05</code> means 1 hour and 5 minutes. Coordinates are used for sunset/sunrise triggers and solar-elevation mode. The schedule does not restart its fade if the TV wakes partway through.</p>
+        <div class="section-heading subheading"><div><p class="kicker">EYE COMFORT</p><h3>Separate evening setting</h3></div><label class="switch"><input id="eyeEnabled" type="checkbox"><span></span><b>Enabled</b></label></div>
+        <div class="form-grid compact"><label>Eye Comfort control<select id="eyeMode"><option value="dynamic">Dynamic</option><option value="time">Time</option><option value="on">On</option><option value="off">Off</option></select></label><label>Eye Comfort lux threshold (lx)<input id="eyeLuxThreshold" type="number" min="0" max="200000" step="1" value="50"></label><label>Eye Comfort timing<select id="eyeTiming"><option value="linked">Follow schedule triggers (linked)</option><option value="custom">Use explicit clock times</option></select></label><label>Eye Comfort starts<input id="eyeStart" type="time" value="21:30"></label><label>Eye Comfort ends<input id="eyeEnd" type="time" value="06:30"></label><label>Start offset from evening trigger (minutes)<input id="eyeStartOffset" type="number" min="-720" max="720" step="1" value="15"></label><label>End offset from morning trigger (minutes)<input id="eyeEndOffset" type="number" min="-720" max="720" step="1" value="0"></label></div>
+        <p class="hint" id="eyeTimingHint">Dynamic follows fresh lux, then falls back to this schedule when readings are stale. Time follows this schedule only and ignores lux. Movie Mode pauses both; On and Off are explicit overrides.</p>
+        <div class="footer-actions"><span class="hint">Changes stay on the TV and apply after any current update finishes.</span><button id="save" class="button primary">Save settings &amp; apply</button></div>
+      </article>
+
+      <article class="card">
+        <p class="kicker">PERSONAL TUNING</p><h2>Brightness offset</h2>
+        <p class="sub">Small adjustment after the schedule calculation.</p>
+        <div class="range-heading"><label for="offset">Offset</label><output id="offsetOut">0 pp</output></div>
+        <input id="offset" type="range" min="-30" max="30" step="1" value="0">
+        <div class="range-scale"><span>−30</span><span>0</span><span>+30</span></div>
+        <button id="saveOffset" class="button secondary full">Apply offset</button>
+      </article>
+
+      <article class="card">
+        <p class="kicker">EXTERNAL SENSOR</p><h2>Send a lux reading</h2>
+        <p class="sub">For a smart light sensor that can reach the TV, no Home Assistant integration needed.</p>
+        <label>Illuminance (lux)<input id="luxInput" type="number" min="0" max="200000" step="1" placeholder="e.g. 85"></label>
+        <button id="sendLux" class="button secondary full">Send sensor reading</button>
+        <p class="hint">Alternatively, enable Webhooks in the TV app and use its secret URL ending in <code>?ambient_lux=0</code>, replacing 0 with the measured value.</p>
+        <p id="sensorStatus" class="statusline">Sensor state is model- and integration-dependent.</p>
+      </article>
+
+      <article class="card">
+        <p class="kicker">AMBIENT RESPONSE</p><h2>Lux mapping</h2>
+        <p class="sub">Map room illuminance to the same TV and HyperHDR brightness range. A Home Assistant lux sensor is optional.</p>
+        <div class="form-grid compact"><label>Minimum room illuminance (lx)<input id="ambientLuxMin" type="number" min="0" max="199999" step="1" value="5"></label><label>Maximum room illuminance (lx)<input id="ambientLuxMax" type="number" min="1" max="200000" step="1" value="500"></label><label>Ambient brightness offset (percentage points)<input id="ambientOffset" type="number" min="-30" max="30" step="1" value="0"></label><label>Lux Stability (lx)<input id="luxStability" type="number" min="0" max="1000" step="1" value="10"><small>Ignore sensor changes up to this amount. Dynamic Eye Comfort stays on until lux rises above its threshold plus this value. Set 0 to disable.</small></label></div>
+        <p class="hint">At or below the minimum lux, night targets apply; at or above the maximum, daytime targets apply. While fresh lux data is available, evening and morning triggers are ignored. Those triggers are fallback only when sensor data is missing or stale.</p>
+      </article>
+
+      <article class="card span2">
+        <div class="section-heading"><div><p class="kicker">AMBIENT LEDS</p><h2>Hyperion / HyperHDR brightness</h2></div><label class="switch"><input id="hyperhdrEnabled" type="checkbox"><span></span><b>Control LEDs</b></label></div>
+        <div class="form-grid compact"><label>HyperHDR night minimum (%)<input id="hyperhdrMin" type="number" min="0" max="100" step="1" value="12"></label><label>HyperHDR day maximum (%)<input id="hyperhdrMax" type="number" min="1" max="100" step="1" value="60"></label></div>
+        <p class="hint">Movie Mode uses the shared Movie Mode brightness when enabled; otherwise it uses this daytime maximum. Connection and instance selection stay in the TV app.</p>
+      </article>
+    </section>
+
+    <details class="card extras-card" id="extrasLocation">
+      <summary><span><span class="kicker">EXTRAS</span><strong>Solar location</strong></span><span class="hint">Latitude &amp; longitude · optional unless solar mode is selected</span></summary>
+      <p class="hint">Coordinates are used for sunrise/sunset triggers and solar-elevation mode. Internet geolocation is approximate; you can enter coordinates from a trusted map manually.</p>
+      <div class="form-grid compact"><label>Latitude<input id="latitude" type="number" min="-89" max="89" step="0.0001" placeholder="e.g. 52.70"></label><label>Longitude<input id="longitude" type="number" min="-180" max="180" step="0.0001" placeholder="e.g. 5.20"></label><label>Sunset offset (minutes)<input id="sunsetOffset" type="number" min="-180" max="180" step="1" value="-20"></label><label>Sunrise offset (minutes)<input id="sunriseOffset" type="number" min="-180" max="180" step="1" value="0"></label></div>
+      <p class="hint">The browser dashboard does not perform IP geolocation. Use the TV app's Extras tab if you want it to try an approximate lookup.</p>
+    </details>
+
+    <footer><span>PanelComfort 0.3.20 · local network only</span><span>Brightness, lux mapping, Eye Comfort, Movie Mode and HyperHDR schedule settings are shared with the TV app and Home Assistant. Connection setup and service diagnostics remain in the TV app.</span></footer>
+  </main>
+  <script src="/panelcomfort.js"></script>
+</body>
+</html>
