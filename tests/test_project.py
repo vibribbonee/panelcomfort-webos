@@ -423,5 +423,54 @@ case "$body" in *serverinfo*) echo '{"success":true,"info":{"instances":[]}}';; 
         self.assertIn("could not read its running instance ids", res.stdout.lower())
 
 
+
+class HomeAssistantStatusCacheTests(unittest.TestCase):
+    """api.py has no Home Assistant imports, so its coordination runs standalone."""
+
+    def setUp(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("panelcomfort_api", HA / "api.py")
+        self.api = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.api)
+
+    def test_offline_tv_costs_one_request_per_poll_cycle(self):
+        import asyncio
+        calls = 0
+
+        async def offline():
+            nonlocal calls
+            calls += 1
+            await asyncio.sleep(0.01)
+            raise TimeoutError("TV is off")
+
+        async def poll_all_entities():
+            return await asyncio.gather(
+                *(self.api.async_cached_status("entry", offline) for _ in range(25)),
+                return_exceptions=True,
+            )
+
+        results = asyncio.run(poll_all_entities())
+        self.assertEqual(calls, 1)
+        self.assertTrue(all(isinstance(r, TimeoutError) for r in results))
+
+    def test_forced_request_and_success_bypass_and_clear_failure(self):
+        import asyncio
+
+        async def offline():
+            raise TimeoutError("TV is off")
+
+        async def online():
+            return {"ok": True}
+
+        async def scenario():
+            with self.assertRaises(TimeoutError):
+                await self.api.async_cached_status("entry", offline)
+            with self.assertRaises(TimeoutError):
+                await self.api.async_cached_status("entry", online)
+            self.assertEqual(await self.api.async_cached_status("entry", online, force=True), {"ok": True})
+            self.assertEqual(await self.api.async_cached_status("entry", offline), {"ok": True})
+
+        asyncio.run(scenario())
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

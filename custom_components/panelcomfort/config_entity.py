@@ -54,8 +54,11 @@ class PanelComfortConfigControl:
             raise HomeAssistantError("A different PanelComfort device answered at the saved address")
         return payload
 
-    async def _rediscover(self) -> bool:
-        found = await async_find_device(self.hass, self._port, self._device_id, force=True)
+    async def _rediscover(self, *, force: bool = False) -> bool:
+        # Polling must respect the shared discovery cooldown: with the TV off, a forced
+        # scan from every schedule entity meant a full subnet sweep each poll cycle.
+        # Only explicit user changes (``_apply``) bypass it.
+        found = await async_find_device(self.hass, self._port, self._device_id, force=force)
         if not found:
             return False
         was_legacy = self._device_id.startswith("legacy-")
@@ -97,7 +100,7 @@ class PanelComfortConfigControl:
             try:
                 await self._request(query)
             except (aiohttp.ClientError, TimeoutError, ValueError, HomeAssistantError):
-                if not await self._rediscover():
+                if not await self._rediscover(force=True):
                     raise
                 await self._request(query)
             invalidate_status(self.entry.entry_id)
