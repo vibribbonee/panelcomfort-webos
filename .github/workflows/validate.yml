@@ -1,0 +1,42 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hacs/action@main
+        with:
+          category: integration
+          comment: "false"
+
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: home-assistant/actions/hassfest@master
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      # The suite parses the TV and dashboard JavaScript with Node.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: ./tests/run-tests.sh

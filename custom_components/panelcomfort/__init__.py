@@ -14,7 +14,6 @@ from .const import (
     CONF_PORT,
     CONF_STATUS_URL,
     DEFAULT_PORT,
-    DOMAIN,
 )
 from .discovery import async_probe_host, legacy_identity
 

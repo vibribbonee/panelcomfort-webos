@@ -9,7 +9,6 @@ import io
 import os
 import pathlib
 import re
-import shutil
 import subprocess
 import tarfile
 import tempfile

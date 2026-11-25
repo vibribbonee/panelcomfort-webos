@@ -23,7 +23,7 @@ from .const import (
     REDISCOVERY_COOLDOWN_SECONDS,
     SCAN_INTERVAL_SECONDS,
 )
-from .discovery import async_find_device, async_probe_host, legacy_identity
+from .discovery import async_find_device, legacy_identity
 from .api import async_cached_status, async_config_lock, invalidate_status
 
 _LOGGER = logging.getLogger(__name__)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ipaddress
 from typing import Any
-from urllib.parse import urlsplit
 
 from homeassistant.core import callback
 
@@ -17,7 +16,7 @@ from .const import (
     DEFAULT_PORT,
     DOMAIN,
 )
-from .discovery import async_device_from_ssdp, async_discover_devices, async_probe_host, legacy_identity
+from .discovery import async_device_from_ssdp, async_discover_devices, async_probe_host
 
 
 class PanelComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
