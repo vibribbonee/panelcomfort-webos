@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.const import Platform
+from homeassistant.helpers import config_validation as cv
 
 from .const import (
     CONF_DEVICE_ID,
@@ -14,9 +15,11 @@ from .const import (
     CONF_PORT,
     CONF_STATUS_URL,
     DEFAULT_PORT,
+    DOMAIN,
 )
 from .discovery import async_probe_host, legacy_identity
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 PLATFORMS = [Platform.SWITCH, Platform.SENSOR, Platform.NUMBER, Platform.SELECT, Platform.TIME, Platform.BINARY_SENSOR]
 
 

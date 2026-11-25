@@ -8,8 +8,9 @@
   "dependencies": [
     "ssdp"
   ],
+  "documentation": "https://github.com/vibribbonee/panelcomfort-webos#readme",
   "iot_class": "local_polling",
-  "version": "1.18.1",
+  "issue_tracker": "https://github.com/vibribbonee/panelcomfort-webos/issues",
   "ssdp": [
     {
       "st": "urn:panelcomfort-webos-org:device:PanelComfort:1",
@@ -17,6 +18,5 @@
       "modelName": "LG webOS panel scheduler"
     }
   ],
-  "documentation": "https://github.com/vibribbonee/panelcomfort-webos#readme",
-  "issue_tracker": "https://github.com/vibribbonee/panelcomfort-webos/issues"
+  "version": "1.18.1"
 }
