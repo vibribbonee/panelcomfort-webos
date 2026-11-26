@@ -1,4 +1,5 @@
 name: Validate
+# Runs HACS and hassfest validation plus the offline test suite.
 
 on:
   push:
