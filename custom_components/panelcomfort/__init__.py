@@ -17,6 +17,7 @@ from .const import (
     DEFAULT_PORT,
     DOMAIN,
 )
+from .coordinator import PanelComfortConfigEntry, PanelComfortCoordinator
 from .discovery import async_probe_host, legacy_identity
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -27,12 +28,27 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: PanelComfortConfigEntry) -> bool:
+    coordinator = PanelComfortCoordinator(hass, entry)
+    coordinator.async_bind_lux_sensor()
+    entry.async_on_unload(coordinator.async_shutdown_lux)
+    # The TV is often off. Create its entities as unavailable rather than
+    # failing setup; the coordinator keeps polling until it answers.
+    await coordinator.async_refresh()
+    entry.runtime_data = coordinator
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def _async_options_updated(hass: HomeAssistant, entry: PanelComfortConfigEntry) -> None:
+    """Follow a newly selected lux sensor without reloading the entities."""
+    coordinator = entry.runtime_data
+    coordinator.async_bind_lux_sensor()
+    await coordinator.async_request_refresh()
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: PanelComfortConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

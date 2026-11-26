@@ -21,6 +21,8 @@ Automatically dim a rooted LG webOS TV in the evening and brighten it during the
 2. Open PanelComfort and install its service when prompted. Choose a schedule and select **Save & apply**.
 3. For Home Assistant control, enable **Home Assistant API** on the TV and install the integration with the button above. Restart Home Assistant and accept discovery, or add **PanelComfort** with the TV’s address and port `8765`.
 
+On new installs, fine-tuning settings such as solar coordinates, schedule offsets, and lux bounds start hidden. Enable them on the device page when you need them.
+
 Tested on LG UP78 (43UP78006LB), webOS 6.3.2-425.
 
 ## Use it

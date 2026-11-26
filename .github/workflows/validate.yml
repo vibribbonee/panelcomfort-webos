@@ -41,3 +41,5 @@ jobs:
         with:
           node-version: "22"
       - run: ./tests/run-tests.sh
+      - run: pip install -r requirements_test.txt
+      - run: python -m pytest -q
