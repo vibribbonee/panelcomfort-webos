@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers import network as ha_network
+from homeassistant.components import network as ha_network
 
 from .const import CONF_DEVICE_ID, CONF_HOST, CONF_PORT, DEFAULT_PORT, DISCOVERY_PATH
 
@@ -73,8 +73,8 @@ async def _candidate_hosts(hass: HomeAssistant) -> list[str]:
     """Return bounded local IPv4 ranges for the fallback discovery scan."""
     try:
         adapters = await ha_network.async_get_adapters(hass)
-    except (RuntimeError, OSError, AttributeError):
-        _LOGGER.debug("Could not query Home Assistant network adapters", exc_info=True)
+    except (RuntimeError, OSError):
+        _LOGGER.warning("Could not read Home Assistant's network adapters; the TV cannot be found after an address change", exc_info=True)
         return []
     networks: dict[str, ipaddress.IPv4Network] = {}
     for adapter in adapters:
