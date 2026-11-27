@@ -12,4 +12,4 @@ ha=false; hooks=false; web=false
 [ "${WEBHOOK_ENABLED:-0}" = 1 ] && hooks=true
 [ "${WEB_UI_ENABLED:-0}" = 1 ] && web=true
 printf 'Content-Type: application/json\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n\r\n'
-printf '{"ok":true,"domain":"panelcomfort-health","version":"0.3.22","port":%s,"ha_api_enabled":%s,"webhooks_enabled":%s,"web_ui_enabled":%s}\n' "$port" "$ha" "$hooks" "$web"
+printf '{"ok":true,"domain":"panelcomfort-health","version":"0.3.23","port":%s,"ha_api_enabled":%s,"webhooks_enabled":%s,"web_ui_enabled":%s}\n' "$port" "$ha" "$hooks" "$web"

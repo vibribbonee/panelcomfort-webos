@@ -22,4 +22,4 @@ case "$remote" in
 esac
 printf '%s' "${HA_DEVICE_ID:-}" | grep -Eq '^[a-fA-F0-9]{24}$' || fail '503 Service Unavailable' 'device ID must be 24 hexadecimal characters'
 printf 'Content-Type: application/json\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n\r\n'
-printf '{"ok":true,"domain":"panelcomfort","device_id":"%s","port":%s,"version":"0.3.22"}\n' "$HA_DEVICE_ID" "${HA_API_PORT:-8765}"
+printf '{"ok":true,"domain":"panelcomfort","device_id":"%s","port":%s,"version":"0.3.23"}\n' "$HA_DEVICE_ID" "${HA_API_PORT:-8765}"

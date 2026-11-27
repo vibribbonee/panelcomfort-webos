@@ -83,7 +83,12 @@ store_lux_sample(){
   previous=${HA_AMBIENT_LUX:-}; previous_stamp=${HA_AMBIENT_LUX_UPDATED:-0}
   case "$previous" in ''|*[!0-9]*) previous='';; esac
   case "$previous_stamp" in ''|*[!0-9]*) previous_stamp=0;; esac
-  if [ -n "$previous" ] && [ "$previous" -le 200000 ] 2>/dev/null && [ "$previous_stamp" -gt 0 ] 2>/dev/null && [ "$stamp" -ge "$previous_stamp" ] 2>/dev/null && [ $((stamp-previous_stamp)) -le 180 ] 2>/dev/null; then
+  # Skip re-applying a near-identical reading only while the scheduler is
+  # already using lux (same freshness rule as daemon.sh). A reading that ends a
+  # clock fallback, such as the first one after the TV boots, always applies.
+  session_start=$(cat "$ROOT_DIR/lux-session-start" 2>/dev/null || echo 0)
+  case "$session_start" in ''|*[!0-9]*) session_start=0;; esac
+  if [ -n "$previous" ] && [ "$previous" -le 200000 ] 2>/dev/null && [ "$previous_stamp" -gt "$session_start" ] 2>/dev/null && [ "$stamp" -ge "$previous_stamp" ] 2>/dev/null && [ $((stamp-previous_stamp)) -le 120 ] 2>/dev/null; then
     difference=$((incoming - previous)); [ "$difference" -lt 0 ] && difference=$((-difference))
     if [ "$difference" -le "$stability" ] 2>/dev/null; then
       write_cfg HA_AMBIENT_LUX_UPDATED "$stamp" || return 1
