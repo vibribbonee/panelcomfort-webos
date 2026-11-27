@@ -51,6 +51,14 @@ def parse_lux(value: Any) -> int | None:
     return int(round(lux))
 
 
+def _tv_lost_lux(payload: dict[str, Any] | None) -> bool:
+    """True when the TV wants lux but fell back to its clock (e.g. just booted)."""
+    data = payload or {}
+    return data.get("fade_method") == "ambient" and data.get("phase") in (
+        "day", "night", "morning-fade", "evening-fade"
+    )
+
+
 class PanelComfortCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Poll the TV once per cycle, forward lux, and serialize setting changes."""
 
@@ -185,6 +193,7 @@ class PanelComfortCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _lux_due(self, lux: int, payload: dict[str, Any] | None) -> bool:
         return (
             self._last_lux is None
+            or _tv_lost_lux(payload)
             or abs(lux - self._last_lux) > self._lux_stability(payload)
             or time.monotonic() - self._last_lux_sent_at >= _LUX_REFRESH_SECONDS
         )

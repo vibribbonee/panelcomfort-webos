@@ -154,3 +154,17 @@ async def test_tv_found_at_a_new_address_after_dhcp_change(hass, aioclient_mock)
         await hass.async_block_till_done()
     assert entry.data["host"] == new_host
     assert hass.states.get("sensor.panelcomfort_tv_backlight_target").state == "42"
+
+
+async def test_lux_is_resent_at_once_when_the_tv_fell_back_to_its_clock(hass, aioclient_mock):
+    """A TV that just booted ignores older lux and runs on its clock until a new reading arrives."""
+    hass.states.async_set("sensor.room_lux", "4")
+    aioclient_mock.get(BASE, json={**STATUS, "fade_method": "ambient", "ambient_lux": 4, "phase": "day"})
+    entry = _entry(ambient_lux_entity="sensor.room_lux")
+    await _setup(hass, entry)
+    assert sum("ambient_lux" in url.query for _m, url, *_ in aioclient_mock.mock_calls) == 1
+
+    # The next poll still sees the clock fallback, so the unchanged reading goes out again
+    # instead of waiting for the one-minute refresh.
+    await entry.runtime_data.async_refresh()
+    assert sum("ambient_lux" in url.query for _m, url, *_ in aioclient_mock.mock_calls) == 2
