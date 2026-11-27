@@ -5,7 +5,7 @@ APP_DIR="/media/developer/apps/usr/palm/applications/$APP_ID"
 ROOT_DIR=/var/lib/webosbrew/panelcomfort
 HOOK_DIR=/var/lib/webosbrew/init.d
 HOOK="$HOOK_DIR/90-panelcomfort"
-VERSION=0.3.21
+VERSION=0.3.22
 FILES="daemon.sh apply-queue.sh start.sh ha-server.sh panelcomfort-httpd.js ssdp-broadcast.sh hyperhdr.sh hyperhdr-retry.sh picture-watch.sh panelcomfort.cgi panelcomfort-ha.cgi panelcomfort-discovery.cgi panelcomfort-web.cgi panelcomfort-health.cgi default.env install-root.sh remove-root.sh update-root.sh"
 mkdir -p "$ROOT_DIR" "$HOOK_DIR"
 current=$(cat "$ROOT_DIR/service-version" 2>/dev/null || true)
@@ -36,6 +36,7 @@ ensure_line AMBIENT_LUX_MIN 5
 ensure_line AMBIENT_LUX_MAX 500
 ensure_line LUX_STABILITY 10
 ensure_line AMBIENT_BRIGHTNESS_OFFSET 0
+ensure_line HYPERHDR_DARK_CURVE 0
 ensure_line DIM_MODE fixed
 ensure_line DIM_START 21:00
 ensure_line DIM_DURATION 60

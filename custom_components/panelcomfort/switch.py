@@ -15,6 +15,7 @@ SWITCHES = (
     ("eye_schedule_enabled", "Eye Comfort Schedule", "mdi:eye-check-outline", "eye_schedule"),
     ("eye_comfort", "Eye Comfort", "mdi:eye-check-outline", "eye_comfort_mode"),
     ("hyperhdr_enabled", "HyperHDR Control", "mdi:led-strip-variant", "hyperhdr"),
+    ("hyperhdr_dark_curve", "LED Dark-Room Curve", "mdi:chart-bell-curve-cumulative", "hyperhdr_dark_curve"),
     ("profile_protection_enabled", "Picture Profile Protection", "mdi:television-shimmer", "profile_protection"),
 )
 _ATTRIBUTE_KEYS = ("phase", "backlight", "eye_comfort", "service_enabled", "hyperhdr_enabled", "hyperhdr_brightness")

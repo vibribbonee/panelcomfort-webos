@@ -1,6 +1,6 @@
 {
   "id": "com.webosbrew.panelcomfort",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "vendor": "PanelComfort",
   "type": "web",
   "main": "index.html",

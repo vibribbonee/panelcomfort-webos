@@ -4,7 +4,7 @@
 set -eu
 BASE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SRC="$BASE/src/com.webosbrew.panelcomfort"
-VERSION=0.3.21
+VERSION=0.3.22
 OUT=${1:-"$BASE/com.webosbrew.panelcomfort_${VERSION}_all.ipk"}
 case "$OUT" in /*) ;; *) OUT="$PWD/$OUT" ;; esac
 TMP=$(mktemp -d)

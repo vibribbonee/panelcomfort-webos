@@ -16,7 +16,7 @@ get_lan_ip(){
 send_notify(){
   ipaddr=$1; port=$2; udn=$3
   if command -v nc >/dev/null 2>&1; then set -- nc; elif busybox --list 2>/dev/null | grep -qx nc; then set -- busybox nc; else return 1; fi
-  { printf 'NOTIFY * HTTP/1.1\r\n'; printf 'HOST: 239.255.255.250:1900\r\n'; printf 'CACHE-CONTROL: max-age=180\r\n'; printf 'LOCATION: http://%s:%s/device.xml\r\n' "$ipaddr" "$port"; printf 'NT: %s\r\n' "$SERVICE"; printf 'NTS: ssdp:alive\r\n'; printf 'SERVER: webOS/6 UPnP/1.1 PanelComfort/0.3.21\r\n'; printf 'USN: uuid:%s::%s\r\n' "$udn" "$SERVICE"; printf 'BOOTID.UPNP.ORG: 1\r\n'; printf 'CONFIGID.UPNP.ORG: 1\r\n\r\n'; } | "$@" -u -w 1 239.255.255.250 1900 >/dev/null 2>&1
+  { printf 'NOTIFY * HTTP/1.1\r\n'; printf 'HOST: 239.255.255.250:1900\r\n'; printf 'CACHE-CONTROL: max-age=180\r\n'; printf 'LOCATION: http://%s:%s/device.xml\r\n' "$ipaddr" "$port"; printf 'NT: %s\r\n' "$SERVICE"; printf 'NTS: ssdp:alive\r\n'; printf 'SERVER: webOS/6 UPnP/1.1 PanelComfort/0.3.22\r\n'; printf 'USN: uuid:%s::%s\r\n' "$udn" "$SERVICE"; printf 'BOOTID.UPNP.ORG: 1\r\n'; printf 'CONFIGID.UPNP.ORG: 1\r\n\r\n'; } | "$@" -u -w 1 239.255.255.250 1900 >/dev/null 2>&1
 }
 while :; do
   [ -r "$CFG" ] || { sleep 10; continue; }

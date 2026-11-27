@@ -24,6 +24,7 @@ ensure_line AMBIENT_LUX_MIN 5
 ensure_line AMBIENT_LUX_MAX 500
 ensure_line LUX_STABILITY 10
 ensure_line AMBIENT_BRIGHTNESS_OFFSET 0
+ensure_line HYPERHDR_DARK_CURVE 0
 ensure_line DIM_MODE fixed
 ensure_line DIM_START 21:00
 ensure_line DIM_DURATION 60
@@ -71,7 +72,7 @@ chmod 600 "$ROOT_DIR/config.env"
 mkdir -p "$ROOT_DIR/web-ui"
 if [ -d "$APP_DIR/web-ui" ]; then cp -R "$APP_DIR/web-ui/." "$ROOT_DIR/web-ui/"; fi
 chmod 700 "$ROOT_DIR/panelcomfort-web.cgi"
-printf '0.3.21\n' > "$ROOT_DIR/service-version"
+printf '0.3.22\n' > "$ROOT_DIR/service-version"
 cat > "$HOOK" <<'HOOKSCRIPT'
 #!/bin/sh
 exec /var/lib/webosbrew/panelcomfort/start.sh

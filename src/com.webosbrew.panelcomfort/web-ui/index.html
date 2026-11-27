@@ -83,6 +83,7 @@
       <article class="card span2">
         <div class="section-heading"><div><p class="kicker">AMBIENT LEDS</p><h2>Hyperion / HyperHDR brightness</h2></div><label class="switch"><input id="hyperhdrEnabled" type="checkbox"><span></span><b>Control LEDs</b></label></div>
         <div class="form-grid compact"><label>HyperHDR night minimum (%)<input id="hyperhdrMin" type="number" min="0" max="100" step="1" value="12"></label><label>HyperHDR day maximum (%)<input id="hyperhdrMax" type="number" min="1" max="100" step="1" value="60"></label></div>
+        <label class="switch"><input id="hyperhdrDarkCurve" type="checkbox"><span></span><b>Dim LEDs more in dark rooms</b></label><p class="hint">Lux modes only. The LEDs drop faster than the screen as the room gets darker and still reach the day maximum in full light.</p>
         <p class="hint">Movie Mode uses the shared Movie Mode brightness when enabled; otherwise it uses this daytime maximum. Connection and instance selection stay in the TV app.</p>
       </article>
     </section>
@@ -94,7 +95,7 @@
       <p class="hint">The browser dashboard does not perform IP geolocation. Use the TV app's Extras tab if you want it to try an approximate lookup.</p>
     </details>
 
-    <footer><span>PanelComfort 0.3.21 · local network only</span><span>Brightness, lux mapping, Eye Comfort, Movie Mode and HyperHDR schedule settings are shared with the TV app and Home Assistant. Connection setup and service diagnostics remain in the TV app.</span></footer>
+    <footer><span>PanelComfort 0.3.22 · local network only</span><span>Brightness, lux mapping, Eye Comfort, Movie Mode and HyperHDR schedule settings are shared with the TV app and Home Assistant. Connection setup and service diagnostics remain in the TV app.</span></footer>
   </main>
   <script src="/panelcomfort.js"></script>
 </body>

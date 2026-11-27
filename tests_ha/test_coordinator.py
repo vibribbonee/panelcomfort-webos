@@ -168,3 +168,17 @@ async def test_lux_is_resent_at_once_when_the_tv_fell_back_to_its_clock(hass, ai
     # instead of waiting for the one-minute refresh.
     await entry.runtime_data.async_refresh()
     assert sum("ambient_lux" in url.query for _m, url, *_ in aioclient_mock.mock_calls) == 2
+
+
+async def test_led_dark_room_curve_switch(hass, aioclient_mock):
+    aioclient_mock.get(BASE, json={**STATUS, "hyperhdr_dark_curve": False})
+    await _setup(hass, _entry())
+    assert hass.states.get("switch.panelcomfort_tv_led_dark_room_curve").state == "off"
+
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(BASE, json={**STATUS, "hyperhdr_dark_curve": True})
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": "switch.panelcomfort_tv_led_dark_room_curve"}, blocking=True
+    )
+    assert any(url.query.get("hyperhdr_dark_curve") == "on" for _m, url, *_ in aioclient_mock.mock_calls)
+    assert hass.states.get("switch.panelcomfort_tv_led_dark_room_curve").state == "on"

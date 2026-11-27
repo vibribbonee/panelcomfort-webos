@@ -1,12 +1,12 @@
 (function(){
   'use strict';
   const APP_ID='com.webosbrew.panelcomfort';
-  const APP_VERSION='0.3.21';
+  const APP_VERSION='0.3.22';
   const APP_DIR='/media/developer/apps/usr/palm/applications/'+APP_ID;
   const ROOT='/var/lib/webosbrew/panelcomfort';
   const HOOK='/var/lib/webosbrew/init.d/90-panelcomfort';
   const $=id=>document.getElementById(id);
-  const fields=['enabled','dimMode','upMode','fadeMethod','fadeCurve','dimStart','dimDuration','undimStart','undimDuration','ambientLuxMin','ambientLuxMax','luxStability','ambientBrightnessOffset','minBrightness','maxBrightness','movieBrightnessEnabled','movieBrightness','eyeEnabled','eyeComfortMode','eyeLuxThreshold','eyeTiming','eyeStart','eyeEnd','eyeStartOffset','eyeEndOffset','latitude','longitude','sunsetOffset','sunriseOffset','profileProtectionEnabled','webUiEnabled','haApiEnabled','haApiPort','webhookEnabled','hyperhdrEnabled','hyperhdrHost','hyperhdrPort','hyperhdrToken','hyperhdrInstanceIds','hyperhdrMinBrightness','hyperhdrMaxBrightness','webhookHost'];
+  const fields=['enabled','dimMode','upMode','fadeMethod','fadeCurve','dimStart','dimDuration','undimStart','undimDuration','ambientLuxMin','ambientLuxMax','luxStability','ambientBrightnessOffset','minBrightness','maxBrightness','movieBrightnessEnabled','movieBrightness','eyeEnabled','eyeComfortMode','eyeLuxThreshold','eyeTiming','eyeStart','eyeEnd','eyeStartOffset','eyeEndOffset','latitude','longitude','sunsetOffset','sunriseOffset','profileProtectionEnabled','webUiEnabled','haApiEnabled','haApiPort','webhookEnabled','hyperhdrEnabled','hyperhdrHost','hyperhdrPort','hyperhdrToken','hyperhdrInstanceIds','hyperhdrMinBrightness','hyperhdrMaxBrightness','hyperhdrDarkCurve','webhookHost'];
   let bootInstalled=false, overrideActive=false, rootAvailable=false, schedulerReady=false, busy=false, needsRootUpdate=false, rootScriptVersion='';
   let formDirty=false;
   let haServerRunning=false, ssdpRunning=false, tvLanIp='', haDeviceId='', webhookToken='', haBrightnessOffset=0;
@@ -108,6 +108,7 @@
         $('haApiEnabled').checked=parsed.HA_API_ENABLED==='1';
         $('webhookEnabled').checked=parsed.WEBHOOK_ENABLED==='1';
         $('hyperhdrEnabled').checked=parsed.HYPERHDR_ENABLED==='1';
+        $('hyperhdrDarkCurve').checked=parsed.HYPERHDR_DARK_CURVE==='1';
         if(parsed.WEBHOOK_HOST!==undefined)setFormValue('webhookHost',parsed.WEBHOOK_HOST);
       }
       haDeviceId=parsed.HA_DEVICE_ID||'';webhookToken=parsed.WEBHOOK_TOKEN||'';haBrightnessOffset=Number(parsed.HA_BRIGHTNESS_OFFSET||0);if(!Number.isFinite(haBrightnessOffset))haBrightnessOffset=0;
@@ -386,7 +387,7 @@
     const eyeLuxThreshold=Number($('eyeLuxThreshold').value);
     if(!Number.isInteger(eyeLuxThreshold)||eyeLuxThreshold<0||eyeLuxThreshold>200000)throw new Error('Eye Comfort lux threshold must be a whole number from 0 to 200000.');
     if(!['dynamic','time','on','off'].includes($('eyeComfortMode').value))throw new Error('Choose Dynamic, Time, On, or Off for Eye Comfort.');
-    const values={ENABLED:$('enabled').checked?1:0,FADE_METHOD:$('fadeMethod').value,FADE_CURVE:$('fadeCurve').value,DIM_MODE:$('dimMode').value,DIM_START:$('dimStart').value||'21:00',DIM_DURATION:dimDuration,UP_MODE:$('upMode').value,UNDIM_START:$('undimStart').value||'06:30',UNDIM_DURATION:undimDuration,AMBIENT_LUX_MIN:luxMin,AMBIENT_LUX_MAX:luxMax,LUX_STABILITY:luxStability,AMBIENT_BRIGHTNESS_OFFSET:ambientOffset,MIN_BRIGHTNESS:min,MAX_BRIGHTNESS:max,MOVIE_BRIGHTNESS_ENABLED:$('movieBrightnessEnabled').checked?1:0,MOVIE_BRIGHTNESS:movieBrightness,EYE_ENABLED:$('eyeEnabled').checked?1:0,HA_EYE_COMFORT_OVERRIDE:$('eyeComfortMode').value,EYE_LUX_THRESHOLD:eyeLuxThreshold,EYE_TIMING:$('eyeTiming').value,EYE_START:$('eyeStart').value||'21:30',EYE_END:$('eyeEnd').value||'06:30',EYE_START_OFFSET:eyeStartOffset,EYE_END_OFFSET:eyeEndOffset,SUNSET_LAT:lat||'',SUNSET_LON:lon||'',SUNSET_OFFSET:$('sunsetOffset').value||'-20',SUNRISE_OFFSET:$('sunriseOffset').value||'0',PROFILE_PROTECTION_ENABLED:$('profileProtectionEnabled').checked?1:0,WEB_UI_ENABLED:$('webUiEnabled').checked?1:0,HA_API_ENABLED:$('haApiEnabled').checked?1:0,HA_API_PORT:haPort,HA_DEVICE_ID:haDeviceId,WEBHOOK_ENABLED:$('webhookEnabled').checked?1:0,WEBHOOK_TOKEN:webhookToken,WEBHOOK_HOST:webhookHostOverride,HYPERHDR_ENABLED:hdrEnabled?1:0,HYPERHDR_HOST:hdrHost,HYPERHDR_PORT:hdrPort,HYPERHDR_TOKEN:hdrToken,HYPERHDR_INSTANCE_IDS:instanceSpec,HYPERHDR_MIN_BRIGHTNESS:hdrMin,HYPERHDR_MAX_BRIGHTNESS:hdrMax};
+    const values={ENABLED:$('enabled').checked?1:0,FADE_METHOD:$('fadeMethod').value,FADE_CURVE:$('fadeCurve').value,DIM_MODE:$('dimMode').value,DIM_START:$('dimStart').value||'21:00',DIM_DURATION:dimDuration,UP_MODE:$('upMode').value,UNDIM_START:$('undimStart').value||'06:30',UNDIM_DURATION:undimDuration,AMBIENT_LUX_MIN:luxMin,AMBIENT_LUX_MAX:luxMax,LUX_STABILITY:luxStability,AMBIENT_BRIGHTNESS_OFFSET:ambientOffset,MIN_BRIGHTNESS:min,MAX_BRIGHTNESS:max,MOVIE_BRIGHTNESS_ENABLED:$('movieBrightnessEnabled').checked?1:0,MOVIE_BRIGHTNESS:movieBrightness,EYE_ENABLED:$('eyeEnabled').checked?1:0,HA_EYE_COMFORT_OVERRIDE:$('eyeComfortMode').value,EYE_LUX_THRESHOLD:eyeLuxThreshold,EYE_TIMING:$('eyeTiming').value,EYE_START:$('eyeStart').value||'21:30',EYE_END:$('eyeEnd').value||'06:30',EYE_START_OFFSET:eyeStartOffset,EYE_END_OFFSET:eyeEndOffset,SUNSET_LAT:lat||'',SUNSET_LON:lon||'',SUNSET_OFFSET:$('sunsetOffset').value||'-20',SUNRISE_OFFSET:$('sunriseOffset').value||'0',PROFILE_PROTECTION_ENABLED:$('profileProtectionEnabled').checked?1:0,WEB_UI_ENABLED:$('webUiEnabled').checked?1:0,HA_API_ENABLED:$('haApiEnabled').checked?1:0,HA_API_PORT:haPort,HA_DEVICE_ID:haDeviceId,WEBHOOK_ENABLED:$('webhookEnabled').checked?1:0,WEBHOOK_TOKEN:webhookToken,WEBHOOK_HOST:webhookHostOverride,HYPERHDR_ENABLED:hdrEnabled?1:0,HYPERHDR_HOST:hdrHost,HYPERHDR_PORT:hdrPort,HYPERHDR_TOKEN:hdrToken,HYPERHDR_INSTANCE_IDS:instanceSpec,HYPERHDR_MIN_BRIGHTNESS:hdrMin,HYPERHDR_MAX_BRIGHTNESS:hdrMax,HYPERHDR_DARK_CURVE:$('hyperhdrDarkCurve').checked?1:0};
     Object.keys(values).forEach(k=>{const v=String(values[k]);if(!/^[A-Z_]+$/.test(k))throw new Error('Invalid setting name');if(!/^-?[0-9.]+$/.test(v)&&!/^[a-zA-Z0-9:._,-]*$/.test(v))throw new Error('Invalid setting value for '+k);});
     return Object.keys(values).map(k=>k+'='+values[k]).join('\n')+'\n';
   }

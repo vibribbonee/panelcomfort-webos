@@ -129,6 +129,18 @@ write_tv_sensor_status(){
   { printf 'TV_SENSOR_AVAILABLE=%s\n' "$available"; printf 'TV_SENSOR_LUMINANCE=%s\n' "$value"; printf 'TV_SENSOR_UPDATED=%s\n' "$stamp"; } > "$ROOT_DIR/tv-sensor-status.tmp" && mv "$ROOT_DIR/tv-sensor-status.tmp" "$ROOT_DIR/tv-sensor-status"
 }
 
+# Map a lux position (0-100) into the HyperHDR range. The optional dark-room
+# curve squares the position, so the LEDs fall away faster than the panel as
+# the room darkens while both still reach Day Maximum in full light.
+led_level(){
+  _pct=$1; _lo=$2; _hi=$3
+  if [ "${HYPERHDR_DARK_CURVE:-0}" = 1 ]; then
+    printf '%s\n' $((_lo + ((_hi-_lo)*_pct*_pct + 5000)/10000))
+  else
+    printf '%s\n' $((_lo + (_hi-_lo)*_pct/100))
+  fi
+}
+
 calculate(){
   now=$(parse_time "$(date +%H:%M)")
   # HA refreshes unchanged lux once per minute. Require data to be recent and
@@ -207,7 +219,7 @@ calculate(){
       if [ -n "$lux" ]; then
         write_tv_sensor_status 1 "$lux"
         pct=$(awk -v l="$lux" -v c="$curve" 'BEGIN { if(l<0)l=0;if(l>200000)l=200000;lo=log(2);hi=log(501);x=(log(l+1)-lo)/(hi-lo);if(x<0)x=0;if(x>1)x=1;pi=atan2(0,-1);if(c=="easein")x=x*x;else if(c=="easeout")x=1-(1-x)*(1-x);else if(c=="smooth")x=x*x*(3-2*x);else if(c=="smootherstep")x=x*x*x*(x*(x*6-15)+10);else if(c=="twilight")x=0.5-0.5*cos(pi*x);else if(c=="rolloff-soft")x=log(1+4*x)/log(5);else if(c=="rolloff")x=log(1+9*x)/log(10);else if(c=="rolloff-strong")x=log(1+19*x)/log(20);else if(c=="exponential")x=(exp(4*x)-1)/(exp(4)-1);else if(c=="gamma-late")x=x^2.2;else if(c=="gamma-early")x=x^0.4545454545;printf "%d\n",int(x*100+0.5) }')
-        brightness=$((min + (max-min)*pct/100)); hdrBrightness=$((hdrMin + (hdrMax-hdrMin)*pct/100)); phase=tv-sensor-response
+        brightness=$((min + (max-min)*pct/100)); hdrBrightness=$(led_level "$pct" "$hdrMin" "$hdrMax"); phase=tv-sensor-response
       else
         write_tv_sensor_status 0 ''
         fadeMethod=duration
@@ -225,7 +237,7 @@ calculate(){
         case "$luxMax" in ???????*) luxMax=500;; esac
         if [ "$luxMin" -ge "$luxMax" ] 2>/dev/null || [ "$luxMin" -gt 200000 ] 2>/dev/null || [ "$luxMax" -gt 200000 ] 2>/dev/null; then luxMin=5; luxMax=500; fi
         pct=$(awk -v l="$lux" -v low="$luxMin" -v high="$luxMax" -v c="$curve" 'BEGIN { if(l<0)l=0;if(l>200000)l=200000;lo=log(low+1);hi=log(high+1);x=(log(l+1)-lo)/(hi-lo);if(x<0)x=0;if(x>1)x=1;pi=atan2(0,-1);if(c=="easein")x=x*x;else if(c=="easeout")x=1-(1-x)*(1-x);else if(c=="smooth")x=x*x*(3-2*x);else if(c=="smootherstep")x=x*x*x*(x*(x*6-15)+10);else if(c=="twilight")x=0.5-0.5*cos(pi*x);else if(c=="rolloff-soft")x=log(1+4*x)/log(5);else if(c=="rolloff")x=log(1+9*x)/log(10);else if(c=="rolloff-strong")x=log(1+19*x)/log(20);else if(c=="exponential")x=(exp(4*x)-1)/(exp(4)-1);else if(c=="gamma-late")x=x^2.2;else if(c=="gamma-early")x=x^0.4545454545;printf "%d\n",int(x*100+0.5) }')
-        brightness=$((min + (max-min)*pct/100)); hdrBrightness=$((hdrMin + (hdrMax-hdrMin)*pct/100)); phase=ambient-response
+        brightness=$((min + (max-min)*pct/100)); hdrBrightness=$(led_level "$pct" "$hdrMin" "$hdrMax"); phase=ambient-response
       else fadeMethod=duration; fi
     fi
     # Time-based mode (also the safe fallback for missing/stale solar or lux data).
