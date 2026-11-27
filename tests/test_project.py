@@ -19,7 +19,7 @@ BASE = pathlib.Path(__file__).resolve().parents[1]
 APP = BASE / "src/com.webosbrew.panelcomfort"
 SCRIPTS = APP / "scripts"
 HA = BASE / "custom_components/panelcomfort"
-VERSION = "0.3.20"
+VERSION = "0.3.21"
 
 
 def run(cmd, *, env=None, cwd=None, input_text=None, check=True):

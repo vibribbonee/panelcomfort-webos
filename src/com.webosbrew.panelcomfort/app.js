@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const APP_ID='com.webosbrew.panelcomfort';
-  const APP_VERSION='0.3.20';
+  const APP_VERSION='0.3.21';
   const APP_DIR='/media/developer/apps/usr/palm/applications/'+APP_ID;
   const ROOT='/var/lib/webosbrew/panelcomfort';
   const HOOK='/var/lib/webosbrew/init.d/90-panelcomfort';

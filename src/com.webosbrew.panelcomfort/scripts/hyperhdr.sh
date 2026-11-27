@@ -263,5 +263,25 @@ case "${1:-test}" in
     printf 'HYPERHDR_APPLY_OK=1\nHYPERHDR_TARGETED_BRIGHTNESS=%s\nHYPERHDR_TARGETED_INSTANCES=%s\n' "$_brightness" "$_targets"
     exit 0
     ;;
-  *) echo 'ERROR=Use test or apply brightness'; exit 2 ;;
+  check)
+    # Cheap reset watch: a fresh API session reports instance 0. A HyperHDR
+    # restart puts every instance back to its saved scale, so when instance 0
+    # is targeted and no longer holds the expected value, the caller re-applies.
+    # Exit 0 = matches or cannot tell, 1 = HyperHDR was reset.
+    _brightness=${2:-}
+    case "$_brightness" in ''|*[!0-9]*) exit 0;; esac
+    [ "$_brightness" -le 100 ] 2>/dev/null || _brightness=100
+    find_api || exit 0
+    _configured=${HYPERHDR_INSTANCE_IDS:-all}
+    case "$_configured" in all) _targets=$(extract_running_ids "$HRESP");; *) _targets=$_configured;; esac
+    case ",$_targets," in *,0,*) ;; *) exit 0;; esac
+    _current=$(printf '%s' "$HRESP" | tr -d '[:space:]' | sed -n 's/.*"scaleOutput":\([0-9.]*\).*/\1/p' | head -n 1)
+    [ -n "$_current" ] || exit 0
+    if awk -v c="$_current" -v p="$_brightness" 'BEGIN { d=c-p/100; if(d<0)d=-d; exit !(d>0.005) }'; then
+      printf '%s HyperHDR scaleOutput is %s but should be %s%%; HyperHDR was probably restarted\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$_current" "$_brightness" >> "$LOG"
+      exit 1
+    fi
+    exit 0
+    ;;
+  *) echo 'ERROR=Use test, apply or check brightness'; exit 2 ;;
 esac

@@ -356,5 +356,22 @@ while :; do
     log 'Could not acquire the apply lock; will retry next interval'
   fi
   if [ "${ENABLED:-1}" != 1 ]; then exit 0; fi
-  sleep 60
+  # Between full applies, check every 10 s that HyperHDR still holds the LED
+  # level. A HyperHDR restart resets it to its saved default (often 100%).
+  # The level comes from the last-applied record, so changes made in between
+  # (from Home Assistant or the web UI) are never undone.
+  step=0
+  while [ "$step" -lt 6 ]; do
+    sleep 10
+    step=$((step + 1))
+    [ "${HYPERHDR_ENABLED:-0}" = 1 ] || continue
+    watched=$(sed -n 's/^HYPERHDR_APPLY_BRIGHTNESS=//p' "$ROOT_DIR/hyperhdr-apply-status" 2>/dev/null)
+    grep -qx 'HYPERHDR_APPLY_STATUS=sent' "$ROOT_DIR/hyperhdr-apply-status" 2>/dev/null || continue
+    case "$watched" in ''|*[!0-9]*) continue;; esac
+    "$ROOT_DIR/hyperhdr.sh" check "$watched" >/dev/null 2>&1 && continue
+    if acquire_apply_lock; then
+      if "$ROOT_DIR/hyperhdr.sh" apply "$watched" >> "$LOG" 2>&1; then log "HyperHDR level restored to $watched% after a reset"; fi
+      release_apply_lock
+    fi
+  done
 done
