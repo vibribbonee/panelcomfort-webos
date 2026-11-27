@@ -17,7 +17,7 @@ Automatically dim a rooted LG webOS TV in the evening and brighten it during the
 
 ## Install
 
-1. On the TV, open **Homebrew Channel → Settings → Add repository** and enter the [Homebrew catalog URL](https://raw.githubusercontent.com/vibribbonee/arcguard/main/repo.json). Install **PanelComfort**, or download the [IPK from Releases](https://github.com/vibribbonee/panelcomfort-webos/releases/latest).
+1. On the TV, open **Homebrew Channel → Settings → Add repository** and enter the [Homebrew catalog URL](https://raw.githubusercontent.com/vibribbonee/webos-homebrew-catalog/main/repo.json). Install **PanelComfort**, or download the [IPK from Releases](https://github.com/vibribbonee/panelcomfort-webos/releases/latest).
 2. Open PanelComfort and install its service when prompted. Choose a schedule and select **Save & apply**.
 3. For Home Assistant control, enable **Home Assistant API** on the TV and install the integration with the button above. Restart Home Assistant and accept discovery, or add **PanelComfort** with the TV’s address and port `8765`.
 
